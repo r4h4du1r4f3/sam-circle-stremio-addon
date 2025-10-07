@@ -10,7 +10,8 @@ function normalize(str) {
 }
 
 function getName(str){
-    return str.match(/^(.+?)\s*\(/)[1].trim().toLowerCase();
+    const match = str.match(/^(.+?)\s*\(/);
+    return match ? match[1]:str;
 }
 
 async function findEpisode(seriesTitle, year, season, episode, BASE_URL, SERIES_BASE_PATH) {
@@ -26,7 +27,7 @@ async function findEpisode(seriesTitle, year, season, episode, BASE_URL, SERIES_
         const len = normalizedSearch.split(' ').length;
         console.log('len:',len);
         
-        const yr = year.replace('–', '-');
+        const yr = year.split('–')[0];
         console.log(yr);
 
         // Find matching movie folder
@@ -40,11 +41,11 @@ async function findEpisode(seriesTitle, year, season, episode, BASE_URL, SERIES_
 
             // Check if it's a folder (ends with /)
             if (href.endsWith('/')) {
-                // let normalizedFolderName = getName(text);
-                let normalizedFolderName = normalize(text);
+                let normalizedFolderName = normalize(getName(text));
+                // let normalizedFolderName = normalize(text);
                 // normalizedFolderName = normalizedFolderName.split(' ').splice(0, len).join(' ');
-                console.log('before norm:',text);
-                console.log(`Normalized folder: "${normalizedFolderName}"`);
+                // console.log('before norm:',text);
+                // console.log(`Normalized folder: "${normalizedFolderName}"`);
                 // Try to match the folder name with movie seriesTitle
                 if ((normalizedFolderName.includes(normalizedSearch) ||
                     normalizedSearch.includes(normalizedFolderName)) &&
