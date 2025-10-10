@@ -9,6 +9,11 @@ function normalize(str) {
         .trim();
 }
 
+function getName(str){
+    const match = str.match(/^(.+?)\s*\(/);
+    return match ? match[1]:str;
+}
+
 async function findMovieInYear(movieTitle, year, BASE_URL, MOVIES_BASE_PATH, source) {
     try {
         if (source==="Sam") {
@@ -33,7 +38,10 @@ async function findMovieInYear(movieTitle, year, BASE_URL, MOVIES_BASE_PATH, sou
 
         const normalizedSearch = normalize(movieTitle);
         console.log(`Normalized search: "${normalizedSearch}"`);
-        const len = normalizedSearch.split(' ').length;
+
+        const yr = year.split('–')[0];
+        console.log(yr);
+
         // Find matching movie folder
         let matchedFolder = null;
         $('a').each((i, elem) => {
@@ -43,20 +51,15 @@ async function findMovieInYear(movieTitle, year, BASE_URL, MOVIES_BASE_PATH, sou
             // Skip if no href or text
             if (!href || !text) return;
 
-            // Skip navigation links
-            // if (text === 'Parent Directory' ||
-            //     text === 'modern browsers' ||
-            //     text === 'powered by h5ai') {
-            //     return;
-            // }
-
             // Check if it's a folder (ends with /)
             if (href.endsWith('/')) {
-                let normalizedFolderName = normalize(text);
-                normalizedFolderName = normalizedFolderName.split(' ').splice(0,len).join(' ');
+                let normalizedFolderName = normalize(getName(text));
+                // normalizedFolderName = normalizedFolderName.split(' ').splice(0,len).join(' ');
                 // Try to match the folder name with movie title
                 // || normalizedSearch.includes(normalizedFolderName.split(' ').slice(0, -2).join(' '))
-                if (normalizedFolderName.includes(normalizedSearch)) {
+                if ((normalizedFolderName.includes(normalizedSearch) ||
+                    normalizedSearch.includes(normalizedFolderName)) &&
+                    text.includes(yr)) {
                     console.log(`Found matching folder: ${text}`);
                     console.log('normalized folder:',normalizedFolderName);
                     matchedFolder = {
@@ -85,23 +88,7 @@ async function findMovieInYear(movieTitle, year, BASE_URL, MOVIES_BASE_PATH, sou
         $folder('a').each((i, elem) => {
             const href = $(elem).attr('href');
             const label = $(elem).text().trim();
-            // const $link = $(elem);
-
-            // Get the label (filename) - try multiple methods
-            // let label = $link.find('span.label').text().trim();
-
-            // If span.label is empty, try getting text directly from link
-            // if (!label) {
-            //     // console.log('found in 1');
-            //     label = $link.text().trim();
-            // }
-
-            // // If still empty, try title attribute
-            // if (!label) {
-            //     // console.log('found in 2');
-            //     label = $link.attr('title') || '';
-            // }
-
+            
             console.log(`Processing: href="${href}", label="${label}"`);
 
             if (!href || !label) return;
@@ -111,7 +98,6 @@ async function findMovieInYear(movieTitle, year, BASE_URL, MOVIES_BASE_PATH, sou
                 const displayName = label;
 
                 // Get file size
-                // const fileSize = $link.find('span.size').text().trim();
                 let fileSize = '';
                 const parentTr = $(elem).closest('tr');
                 if (parentTr.length) {
@@ -125,15 +111,6 @@ async function findMovieInYear(movieTitle, year, BASE_URL, MOVIES_BASE_PATH, sou
 
                 console.log(`Video file found: ${displayName}, size: ${fileSize}`);
 
-                // Take the first video file found (skip if we already found one)
-                // if (!foundVideo) {
-                // Extract quality info from filename
-                let quality = '';
-                if (displayName.match(/2160p|4K/i)) quality = '4K';
-                else if (displayName.match(/1080p/i)) quality = '1080p';
-                else if (displayName.match(/720p/i)) quality = '720p';
-                else if (displayName.match(/480p/i)) quality = '480p';
-
                 // Build full URL
                 const fullUrl = BASE_URL + href;
 
@@ -141,7 +118,6 @@ async function findMovieInYear(movieTitle, year, BASE_URL, MOVIES_BASE_PATH, sou
                     filename: displayName,
                     url: fullUrl,
                     originalName: displayName,
-                    quality: quality,
                     size: fileSize || 'Unknown',
                     source: source
                 });

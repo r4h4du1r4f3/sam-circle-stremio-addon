@@ -70,7 +70,7 @@ async function movieRouter(title, year) {
         movies.push(...await CircleEnglish(title, year, 'Circle'))
         movies.push(...await CircleEnglishForeignDubbed(title, year, 'Circle'));
     }
-    movies.push(...await samEnglishMovie(title, year, 'Sam'));
+    // movies.push(...await samEnglishMovie(title, year, 'Sam'));
     return movies;
 }
 
